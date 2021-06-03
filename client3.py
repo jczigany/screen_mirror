@@ -1,21 +1,10 @@
-import socket, pickle, cv2, struct, time,configparser, os
-from PIL import ImageGrab
-import numpy as np
+import socket
+import pickle
+import cv2
+import struct
 
-config = configparser.ConfigParser()
-HOSTNAME = ""
-SERVER = ""
-PORT = ""
-if os.path.exists('config.ini'):
-    config.read('config.ini')
-    HOSTNAME = config['DEFAULT'].get('station')
-    SERVER = config['DEFAULT'].get('server')
-    PORT = config['DEFAULT'].get('port')
-    print(HOSTNAME, SERVER, PORT)
-else:
-    exit(1111)
 
-def send_data(conn, payload, data_id=1):
+def send_data(conn, payload, data_id=0):
     '''
     @brief: send payload along with data size and data identifier to the connection
     @args[in]:
@@ -25,10 +14,11 @@ def send_data(conn, payload, data_id=1):
     '''
     # serialize payload
     serialized_payload = pickle.dumps(payload)
-    #send data size, data identifier and payload
+    # send data size, data identifier and payload
     conn.sendall(struct.pack('>I', len(serialized_payload)))
     conn.sendall(struct.pack('>I', data_id))
     conn.sendall(serialized_payload)
+
 
 def receive_data(conn):
     '''
@@ -52,18 +42,44 @@ def receive_data(conn):
     payload = pickle.loads(received_payload)
     return (data_id, payload)
 
+
+# define category in which you would like to define data
+data_identifiers = {'info': 0, 'data': 1, 'image': 2}
+# key to be trusted by server
+key_message = 'C0nn3c+10n'
+# a sample dictionary data
+data = {'data number': 0,
+        'message': 'A new message has been arrived from client'}
+
+
 def main():
     # create client socket object and connect it to server
     conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     conn.connect(('127.0.0.1', 12345))
+    # send_data(conn, key_message)
+    # first_payload = receive_data(conn)[1]
+    # if first_payload == 'You are not authorized':
+    #     print('[ERROR]: Access denied')
+    # else:
+        # send a dictionary data and image data in loop till keyboard interrupt is received
     while True:
-        # img_np = "sending DATA"
-        img = ImageGrab.grab(bbox=None)  # bbox specifies specific region (bbox= x,y,width,height)
-        img_np = np.array(img)
-        send_data(conn, img_np)
-        time.sleep(1)
-        print(receive_data(conn)[1])
-
+        try:
+            # send dict
+            data['data number'] += 1
+            send_data(conn, data, data_identifiers['data'])
+            print(receive_data(conn)[1])
+            # send image
+            image = cv2.imread('client_data/sample_image.png', 0)
+            send_data(conn, image, data_identifiers['image'])
+            print(receive_data(conn)[1])
+        except KeyboardInterrupt:
+            print(receive_data(conn)[1])
+            print('\n[INFO]: Keyboard Interrupt received')
+            break
+    # once keyboard interrupt is received, send signal to server for closing connection
+    send_data(conn, 'bye')
+    print(receive_data(conn)[1])
+    # close connection
     conn.close()
     print('[INFO]: Connection closed')
 

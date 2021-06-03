@@ -1,19 +1,6 @@
-import socket, pickle, cv2, struct, time,configparser, os
+import socket, pickle, cv2, struct, time
 from PIL import ImageGrab
 import numpy as np
-
-config = configparser.ConfigParser()
-HOSTNAME = ""
-SERVER = ""
-PORT = ""
-if os.path.exists('config.ini'):
-    config.read('config.ini')
-    HOSTNAME = config['DEFAULT'].get('station')
-    SERVER = config['DEFAULT'].get('server')
-    PORT = config['DEFAULT'].get('port')
-    print(HOSTNAME, SERVER, PORT)
-else:
-    exit(1111)
 
 def send_data(conn, payload, data_id=1):
     '''
@@ -62,6 +49,7 @@ def main():
         img_np = np.array(img)
         send_data(conn, img_np)
         time.sleep(1)
+        #Ezt nem tudom kell-e
         print(receive_data(conn)[1])
 
     conn.close()

@@ -15,7 +15,7 @@ if os.path.exists('config.ini'):
 else:
     exit(1111)
 
-def send_data(conn, payload, data_id=1):
+def send_data(conn, payload, data_id=int(HOSTNAME)):
     '''
     @brief: send payload along with data size and data identifier to the connection
     @args[in]:

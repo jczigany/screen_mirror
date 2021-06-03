@@ -8,7 +8,7 @@ bufferSize = 1024
 
 msgFromServer = "Hello UDP Client"
 
-bytesToSend = str.encode(msgFromServer)
+bytesToSend = str.encode("Hello UDP Client")
 
 # Create a datagram socket
 

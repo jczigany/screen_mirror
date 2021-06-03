@@ -1,5 +1,4 @@
 import socket, threading, time, pickle, cv2, struct, _thread
-# from _thread import *
 from PySide2.QtCore import QThread, Qt, Slot, QObject, Signal
 from PySide2.QtWidgets import QApplication, QLabel, QMainWindow, QPushButton, QTabWidget, QWidget, QDialog
 from PySide2.QtGui import QImage, QPixmap
@@ -53,54 +52,24 @@ class Mainwindow(QMainWindow):
         return (data_id, payload)
 
     def hatter_folyamat(self):
-        threadCount = 0
-        # conn, (address, port) = self.szerver.accept()
+        conn, (address, port) = self.szerver.accept()
         # conn_name = '{}|{}'.format(address, port)
         # print("[INFO]: Accepted the connection from {}".format(conn_name))
         # self.send_data(conn, 'Connection accepted')
         while True:
-            conn, address = self.szerver.accept()
-            print('Connected to: ' + address[0] + ':' + str(address[1]))
-            _thread.start_new_thread(self.kulon_kliens, (conn,))
-            threadCount += 1
-            print("Thread number: " + str(threadCount))
-            print("Összes szál:---------", threading.active_count())
-            print("Összes szál:*****************", _thread._count())
-
-            # data_id, payload = self.receive_data(conn)
-            # print('---Recieved DATA---')
-            # rgbImage = cv2.cvtColor(payload, cv2.COLOR_BGR2RGB)
-            # h, w, ch = rgbImage.shape
-            # bytesPerLine = ch * w
-            # convertToQtFormat = QImage(rgbImage.data, w, h, bytesPerLine, QImage.Format_RGB888)
-            # p = convertToQtFormat.scaled(800, 600, Qt.KeepAspectRatio)
-            # if data_id == 1:
-            #     self.screen1_label.setPixmap(QPixmap.fromImage(p))
-            # elif data_id == 2:
-            #     self.screen2_label.setPixmap(QPixmap.fromImage(p))
-            # self.send_data(conn, 'Image received on server:' + str(data_id))
+            data_id, payload = self.receive_data(conn)
+            print('---Recieved DATA---')
+            rgbImage = cv2.cvtColor(payload, cv2.COLOR_BGR2RGB)
+            h, w, ch = rgbImage.shape
+            bytesPerLine = ch * w
+            convertToQtFormat = QImage(rgbImage.data, w, h, bytesPerLine, QImage.Format_RGB888)
+            p = convertToQtFormat.scaled(800, 600, Qt.KeepAspectRatio)
+            if data_id == 1:
+                self.screen1_label.setPixmap(QPixmap.fromImage(p))
+            elif data_id == 2:
+                self.screen2_label.setPixmap(QPixmap.fromImage(p))
+            self.send_data(conn, 'Image received on server:' + str(data_id))
         conn.close()
-
-    def kulon_kliens(self, conn):
-        try:
-            while True:
-                data_id, payload = self.receive_data(conn)
-                print('---Recieved DATA---')
-                rgbImage = cv2.cvtColor(payload, cv2.COLOR_BGR2RGB)
-                h, w, ch = rgbImage.shape
-                bytesPerLine = ch * w
-                convertToQtFormat = QImage(rgbImage.data, w, h, bytesPerLine, QImage.Format_RGB888)
-                p = convertToQtFormat.scaled(800, 600, Qt.KeepAspectRatio)
-                if data_id == 1:
-                    self.screen1_label.setPixmap(QPixmap.fromImage(p))
-                elif data_id == 2:
-                    self.screen2_label.setPixmap(QPixmap.fromImage(p))
-                self.send_data(conn, 'Image received on server:' + str(data_id))
-        except:
-            conn.close()
-            exit_thread()
-
-
 
 if __name__ == '__main__':
     app = QApplication([])
