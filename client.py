@@ -1,6 +1,7 @@
-import socket, pickle, cv2, struct, time,configparser, os
+import socket, pickle, struct, time,configparser, os
 from PIL import ImageGrab
 import numpy as np
+
 
 config = configparser.ConfigParser()
 HOSTNAME = ""
@@ -11,7 +12,6 @@ if os.path.exists('config.ini'):
     HOSTNAME = config['DEFAULT'].get('station')
     SERVER = config['DEFAULT'].get('server')
     PORT = config['DEFAULT'].get('port')
-    print(HOSTNAME, SERVER, PORT)
 else:
     exit(1111)
 
@@ -45,7 +45,7 @@ def main():
     # create client socket object and connect it to server
     conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
-        conn.connect(('127.0.0.1', 12345))
+        conn.connect((SERVER, int(PORT)))
         while True:
             img = ImageGrab.grab(bbox=None)  # bbox specifies specific region (bbox= x,y,width,height)
             img_np = np.array(img)
